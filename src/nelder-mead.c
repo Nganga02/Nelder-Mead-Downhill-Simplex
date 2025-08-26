@@ -63,12 +63,27 @@ static void shrink(double **s, int n, int ia)
     }
 }
 
-static inline void replace_row(double **s, int i, double **r)
+static inline void replace_row(double **s, int iz, double **r)
 {
+    double *tmp = s[iz];
+    s[iz] = *r;
+    *r = tmp;
 }
 
 static int done(double **s, int n, double *y, int ia, int iz, double err2)
 {
+    double euc_norm = 0.0;
+    /*We are getting the euclidian norm of the best and worst functions*/
+    for(int j = 0; j < n; j++)
+    {
+        euc_norm += ((s[ia][j] - s[iz][j]) * (s[ia][j] - s[iz][j]));
+    }
+
+    if(euc_norm < err2 && abs((y[iz] - y[ia])<= err2)){
+        return 1;
+    }else{
+        return 0;
+    }
 }
 
 int nelder_mead(struct nelder_mead *nm)
