@@ -11,23 +11,36 @@
 
 static inline void rank_vertices(double *y, int m, int *ia, int *iy, int *iz) // call by value
 {
+
+    printf("\nIn the rank vertices func");
+    printf("\n-----------------------------------------");
     *ia = 0;
     *iz = 0;
+    *iy = NULL;
     for (int i = 1; i < m; i++)
     {
         /*Just use comparison to avoid too much arithmetics*/
         if (y[i] < y[*ia])
+        {
             *ia = i;
+        }
         if (y[i] > y[*iz])
         {
-            iy = iz;
+            *iy = *iz;
+            printf("\niy: %d", *iy);
             *iz = i;
+            printf("\niy2: %d", *iy);
+            printf("\niz: %d", *iz);
+            printf("\n-----------------------------------------");
         }
         else if (y[i] < y[*iz])
         {
-            if (iy == NULL || y[i] > y[*iy])
+            if (*iy == NULL || y[i] > y[*iy])
             {
                 *iy = i;
+                printf("\niy: %d", *iy);
+                printf("\niz: %d", *iz);
+                printf("\n-----------------------------------------");
             }
         }
     }
@@ -35,7 +48,9 @@ static inline void rank_vertices(double *y, int m, int *ia, int *iy, int *iz) //
 
 static void get_centroid(double **s, int n, int iz, double *C)
 {
-    for (int i = 0; i < n + 1; i--)
+    C[0] = 0;
+    C[1] = 0;
+    for (int i = 0; i < n + 1; i++)
     {
         for (int j = 0; j < n; j++)
         {
@@ -45,6 +60,8 @@ static void get_centroid(double **s, int n, int iz, double *C)
             }
         }
     }
+    printf("\nThe computed controid is: (%g, %g)", C[0], C[1]);
+    printf("\n-----------------------------------------");
 }
 
 static inline void transform(double *P, double *Q, int n, double beta, double *R)
@@ -75,12 +92,16 @@ static inline void replace_row(double **s, int iz, double **r)
 
 static int done(double **s, int n, double *y, int ia, int iz, double err2)
 {
+    print_matrix("%g ", s, n + 1, n);
     double euc_norm = 0.0;
     /*We are getting the euclidian norm of the best and worst functions*/
     for (int j = 0; j < n; j++)
     {
         euc_norm += ((s[ia][j] - s[iz][j]) * (s[ia][j] - s[iz][j]));
     }
+
+    printf("\nEuclidean norm: %g \nError squared: %g \ny[iz] - y[ia]: %g", euc_norm, err2, (y[iz] - y[ia]));
+    printf("\n-----------------------------------------");
 
     if (euc_norm < err2 && abs((y[iz] - y[ia]) <= err2))
     {
@@ -94,6 +115,11 @@ static int done(double **s, int n, double *y, int ia, int iz, double err2)
 
 int nelder_mead(struct nelder_mead *nm)
 {
+
+    printf("\n-----------------------------------------");
+    printf("\nIn the nelder mead func");
+    printf("\n-----------------------------------------");
+
     double **s = nm->s;
     int n = nm->n;
     double h = nm->h;
@@ -131,17 +157,31 @@ int nelder_mead(struct nelder_mead *nm)
         }
     }
 
-    for (i = 0; i < n; i++)
+    for (i = 0; i < n + 1; i++)
     {
         y[i] = nm->f(s[i], n, nm->params);
+        printf("\n y[%d]: %g", i, y[i]);
     }
+    printf("\n-------------------------------------");
+
     fevalcount = n + 1;
 
     while (fevalcount <= nm->maxevals)
     {
+
+        printf("\n============================================================");
         rank_vertices(y, n + 1, &ia, &iy, &iz);
+        printf("\n y[ia]: %.3f", y[ia]);
+        printf("\n y[iy]: %.3f", y[iy]);
+        printf("\n y[iz]: %.3f", y[iz]);
+
+        printf("\n-------------------------------------");
+
         if (done(s, n, y, ia, iz, err2))
         {
+            printf("CRITERION REACHED");
+            printf("\n-------------------------------------");
+
             nm->minval = y[ia];
             // copy the best vertex into the vector nm → x ...
             memcpy(nm->x, s[ia], n * sizeof(double));
@@ -150,6 +190,9 @@ int nelder_mead(struct nelder_mead *nm)
         get_centroid(s, n, iz, C);
         transform(C, s[iz], n, -REFLECT, Pr);
         yr = nm->f(Pr, n, nm->params);
+        printf("\nyr: %g", yr);
+        printf("\n-------------------------------------");
+
         fevalcount++;
 
         if (yr < y[ia])
@@ -157,6 +200,8 @@ int nelder_mead(struct nelder_mead *nm)
             // Case 1
             transform(C, Pr, n, EXPAND, Pe);
             ye = nm->f(Pe, n, nm->params);
+            printf("\nye: %g", ye);
+            printf("\n-------------------------------------");
             fevalcount++;
             if (ye < yr)
             {
@@ -200,8 +245,8 @@ int nelder_mead(struct nelder_mead *nm)
             }
             else
             {
-                //inner contraction
-                transform(C, s[iz], n, CONTRACT, Pc);
+                // inner contraction
+                transform(C, Pr, n, -CONTRACT, Pc);
                 yc = nm->f(Pc, n, nm->params);
                 fevalcount++;
 
@@ -220,9 +265,10 @@ int nelder_mead(struct nelder_mead *nm)
                 }
             }
         } // end of the while-loop
-
-        // free vectors y, C, Pr, Pe, Pc
-        if (simplex_to_be_freed)
-            free_matrix(s);
-        return fevalcount;
     }
+
+    // free vectors y, C, Pr, Pe, Pc
+    if (simplex_to_be_freed)
+        free_matrix(s);
+    return fevalcount;
+}
