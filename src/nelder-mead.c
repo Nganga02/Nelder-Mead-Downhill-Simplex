@@ -179,7 +179,7 @@ int nelder_mead(struct nelder_mead *nm)
 
         if (done(s, n, y, ia, iz, err2))
         {
-            printf("CRITERION REACHED");
+            printf("\nCRITERION REACHED");
             printf("\n-------------------------------------");
 
             nm->minval = y[ia];
