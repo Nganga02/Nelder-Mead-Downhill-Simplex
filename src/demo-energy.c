@@ -24,8 +24,9 @@ static double en_func(double *x, int n, void *params)
     double (*work_func)(double ) = p->work_func;
     const double *lv = p->load_vector;
 
-    double term_1 = sqrt((x[0] * x[0]) + (x[1] * x[1])) / ROOT_TWO;
-    double term_2 = sqrt((x[0] * x[0]) + (x[1] * x[1]));
+    
+    double term_2 = sqrt(((x[0] - 1)*(x[0] - 1)) + (x[1] * x[1]));
+    double term_1 = (sqrt((x[0] * x[0]) + (x[1] * x[1])))/ROOT_TWO;
     return (ROOT_TWO * work_func(term_1)) + work_func(term_2) - (lv[0] * (x[0] - 1)) - (lv[1] * (x[1] - 1));
 }
 
