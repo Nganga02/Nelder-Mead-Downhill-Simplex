@@ -48,8 +48,8 @@ static inline void rank_vertices(double *y, int m, int *ia, int *iy, int *iz) //
 
 static void get_centroid(double **s, int n, int iz, double *C)
 {
-    C[0] = 0;
-    C[1] = 0;
+    for (int j = 0; j < n; j++)
+        C[j] = 0;
     for (int i = 0; i < n + 1; i++)
     {
         for (int j = 0; j < n; j++)
@@ -60,7 +60,30 @@ static void get_centroid(double **s, int n, int iz, double *C)
             }
         }
     }
-    printf("\nThe computed controid is: (%g, %g)", C[0], C[1]);
+    if (n == 1)
+    {
+        printf("\nThe computed centroid is: (%g)", C[0]);
+    }
+    else if (n == 2)
+    {
+        printf("\nThe computed centroid is: (%g, %g)", C[0], C[1]);
+    }
+    else if (n == 3)
+    {
+        printf("\nThe computed centroid is: (%g, %g, %g)", C[0], C[1], C[2]);
+    }
+    else
+    {
+        printf("\nThe computed centroid is: (");
+        for (int i = 0; i < n; i++)
+        {
+            printf("%g", C[i]);
+            if (i < n - 1)
+                printf(", ");
+        }
+        printf(")");
+    }
+
     printf("\n-----------------------------------------");
 }
 
